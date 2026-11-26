@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You My Baby ❤️</title>
+    <!-- Load Tailwind CSS for responsive utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Google Fonts for romantic typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Fonts & Romantic Animations */
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #fff0f5 0%, #ffe4e6 50%, #fce7f3 100%);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .font-script {
+            font-family: 'Great Vibes', cursive;
+        }
+
+        /* Floating Hearts Background Animation */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0.6) rotate(0deg);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.85;
+            }
+            85% {
+                opacity: 0.85;
+            }
+            100% {
+                transform: translateY(-15vh) scale(1.2) rotate(35deg);
+                opacity: 0;
+            }
+        }
+
+        .floating-heart {
+            position: fixed;
+            bottom: -10vh;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatUp linear forwards;
+        }
+
+        /* Gentle Shake Animation for Wrong Date */
+        @keyframes gentleShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: gentleShake 0.45s ease-in-out;
+        }
+
+        /* Bouquet Blooming & Swaying Animations */
+        @keyframes bloomIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.75) translateY(25px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes gentleSway {
+            0%, 100% { transform: rotate(-1.5deg); }
+            50% { transform: rotate(1.5deg); }
+        }
+
+        .bouquet-container {
+            animation: bloomIn 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .bouquet-sway {
+            transform-origin: bottom center;
+            animation: gentleSway 4s ease-in-out infinite;
+        }
+
+        /* Custom Styling for Date Picker Input */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(32%) sepia(83%) saturate(3015%) hue-rotate(326deg) brightness(92%) contrast(94%);
+            transform: scale(1.2);
+        }
+
+        /* Polaroid Card Hover & Spinning Disc Animations */
+        .polaroid-card {
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+        }
+        .polaroid-card:hover {
+            transform: scale(1.04) rotate(0deg) !important;
+            z-index: 20;
+            box-shadow: 0 20px 30px -10px rgba(225, 29, 72, 0.25);
+        }
+
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin-disc {
+            animation: spinSlow 6s linear infinite;
+        }
+        .spin-paused {
+            animation-play-state: paused;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 sm:p-6 pb-24 relative selection:bg-rose-200 selection:text-rose-900">
+
+    <!-- Container for Floating Background Hearts -->
+    <div id="hearts-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+    <!-- ===================================================================== -->
+    <!-- PERSISTENT FLOATING ROMANTIC MUSIC PLAYER                             -->
+    <!-- HOW TO ADD YOUR FAVORITE SONG:                                        -->
+    <!-- 1. Put your MP3 song in the same folder as index.html                 -->
+    <!-- 2. Rename it to "music.mp3" (or change src="music.mp3" below)         -->
+    <!-- 3. OR click the folder icon on the player in your browser to pick it! -->
+    <!-- ===================================================================== -->
+    <div id="music-widget" class="fixed bottom-4 right-4 z-50 bg-white/90 backdrop-blur-md border border-rose-200 shadow-xl shadow-rose-200/50 rounded-full px-3.5 py-2 flex items-center gap-2.5 transition-all duration-300 hover:shadow-2xl">
+        <!-- Hidden Audio Element -->
+        <audio id="bg-music" src="music.mp3" loop preload="auto"></audio>
+        <!-- Hidden Audio File Picker -->
+        <input type="file" id="music-upload" accept="audio/*" class="hidden">
+
+        <!-- Spinning Vinyl Disc Icon -->
+        <div id="vinyl-disc" class="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-600 via-pink-500 to-rose-300 flex items-center justify-center shadow-inner spin-disc spin-paused shrink-0">
+            <div class="w-2.5 h-2.5 rounded-full bg-white border border-rose-200"></div>
+        </div>
+
+        <!-- Song Info -->
+        <div class="max-w-[115px] sm:max-w-[145px] overflow-hidden">
+            <p id="song-title" class="text-xs font-bold text-rose-800 truncate">Our Special Song ❤️</p>
+            <p id="song-status" class="text-[10px] font-semibold text-rose-400 truncate">Tap play or pick MP3</p>
+        </div>
+
+        <!-- Play / Pause Button -->
+        <button id="play-pause-btn" type="button" title="Play / Pause Music" class="w-8 h-8 rounded-full bg-rose-500 hover:bg-rose-600 active:scale-95 text-white flex items-center justify-center shadow-md transition-all cursor-pointer shrink-0">
+            <!-- Play Icon -->
+            <svg id="icon-play" class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+            <!-- Pause Icon (Hidden initially) -->
+            <svg id="icon-pause" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+        </button>
+
+        <!-- Change / Upload Song Button -->
+        <button id="change-song-btn" type="button" title="Choose your favorite song file" class="w-7 h-7 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-600 flex items-center justify-center transition-colors cursor-pointer shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Main Card Wrapper -->
+    <main id="main-wrapper" class="relative z-10 w-full max-w-md sm:max-w-lg transition-all duration-500">
+
+        <!-- ========================================== -->
+        <!-- PAGE 1: DATE GUESSING VIEW                 -->
+        <!-- ========================================== -->
+        <section id="page-1" class="bg-white/85 backdrop-blur-md rounded-3xl shadow-2xl border border-rose-100 p-7 sm:p-10 text-center transition-all duration-700 ease-in-out">
+            
+            <!-- Cute Decorative Top Heart Icon -->
+            <div class="mx-auto mb-4 w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center shadow-inner animate-pulse">
+                <svg class="w-9 h-9 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </div>
+
+            <!-- Your Original Heading Styled Romantically -->
+            <h1 class="font-script text-5xl sm:text-6xl text-rose-600 mb-3 drop-shadow-sm">
+                For you my baby
+            </h1>
+
+            <p class="text-rose-800/80 text-base sm:text-lg mb-7 font-medium leading-relaxed">
+                Before I show you your surprise, let's see if you remember...<br>
+                <span class="text-rose-600 font-semibold">When did we officially start dating?</span>
+            </p>
+
+            <!-- Date Picker Form -->
+            <form id="date-form" class="space-y-5">
+                <div class="text-left">
+                    <label for="anniversary-date" class="block text-sm font-semibold text-rose-700 mb-2 ml-1">
+                        Choose our special date on the calendar:
+                    </label>
+                    <input 
+                        type="date" 
+                        id="anniversary-date" 
+                        name="anniversary-date"
+                        required
+                        class="w-full px-4 py-3.5 rounded-2xl border-2 border-rose-200 bg-rose-50/50 text-rose-900 font-semibold text-base sm:text-lg focus:outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-200/50 transition-all shadow-sm cursor-pointer"
+                    >
+                </div>
+
+                <!-- Feedback Message Box (Hidden by default) -->
+                <div id="feedback-msg" class="hidden rounded-2xl p-3.5 text-sm sm:text-base font-semibold transition-all duration-300"></div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 active:scale-[0.98] text-white font-bold text-lg shadow-lg shadow-rose-300/60 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    <span>Unlock Surprise</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </button>
+            </form>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PAGE 2: FLOWER BOUQUET & LOVE LETTER VIEW  -->
+        <!-- ========================================== -->
+        <section id="page-2" class="hidden opacity-0 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-rose-100 p-6 sm:p-9 text-center transition-all duration-700 ease-in-out">
+            
+            <!-- Special Date Badge -->
+            <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm tracking-wide uppercase mb-3 shadow-sm">
+                <span>❤️ June 2, 2024 ❤️</span>
+            </div>
+
+            <h2 class="font-script text-4xl sm:text-5xl text-rose-600 mb-2">
+                You remembered, my love!
+            </h2>
+
+            <!-- Detailed SVG Flower Bouquet Illustration -->
+            <div class="bouquet-container my-4 flex justify-center">
+                <svg class="bouquet-sway w-64 h-64 sm:w-72 sm:h-72 drop-shadow-xl" viewBox="0 0 320 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Soft Glow Behind Bouquet -->
+                    <circle cx="160" cy="145" r="115" fill="url(#bouquetGlow)" opacity="0.65"/>
+
+                    <!-- Back Greenery Leaves -->
+                    <path d="M160 220 C110 170, 65 135, 55 95 C95 105, 130 140, 160 220 Z" fill="#2E7D32"/>
+                    <path d="M160 220 C210 170, 255 135, 265 95 C225 105, 190 140, 160 220 Z" fill="#388E3C"/>
+                    <path d="M160 210 C130 145, 115 90, 125 50 C150 85, 160 140, 160 210 Z" fill="#43A047"/>
+                    <path d="M160 210 C190 145, 205 90, 195 50 C170 85, 160 140, 160 210 Z" fill="#2E7D32"/>
+                    <path d="M160 225 C95 195, 50 175, 35 145 C75 150, 120 175, 160 225 Z" fill="#4CAF50"/>
+                    <path d="M160 225 C225 195, 270 175, 285 145 C245 150, 200 175, 160 225 Z" fill="#43A047"/>
+
+                    <!-- Stems -->
+                    <path d="M115 130 Q140 200 158 295" stroke="#1B5E20" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M205 130 Q180 200 162 295" stroke="#2E7D32" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M160 105 L160 300" stroke="#1B5E20" stroke-width="7" stroke-linecap="round"/>
+                    <path d="M90 165 Q130 220 156 295" stroke="#2E7D32" stroke-width="5" stroke-linecap="round"/>
+                    <path d="M230 165 Q190 220 164 295" stroke="#1B5E20" stroke-width="5" stroke-linecap="round"/>
+
+                    <!-- Baby's Breath Sprigs (Tiny White & Pink Blossoms) -->
+                    <g fill="#FFF9FB" stroke="#F8BBD0" stroke-width="1.5">
+                        <circle cx="82" cy="112" r="5"/><circle cx="72" cy="124" r="4.5"/><circle cx="92" cy="122" r="4"/>
+                        <circle cx="238" cy="112" r="5"/><circle cx="248" cy="124" r="4.5"/><circle cx="228" cy="122" r="4"/>
+                        <circle cx="135" cy="72" r="5"/><circle cx="148" cy="64" r="4"/><circle cx="185" cy="72" r="5"/>
+                        <circle cx="172" cy="64" r="4"/><circle cx="65" cy="155" r="4.5"/><circle cx="255" cy="155" r="4.5"/>
+                    </g>
+
+                    <!-- Tulip Left (Soft Coral Pink) -->
+                    <g transform="translate(88, 138) rotate(-22)">
+                        <path d="M-18 12 C-22 -12, -10 -28, 0 -32 C10 -28, 22 -12, 18 12 C12 22, -12 22, -18 12 Z" fill="#FF758F"/>
+                        <path d="M-10 14 C-12 -8, -4 -25, 0 -32 C4 -25, 12 -8, 10 14 Z" fill="#FF4D6D"/>
+                        <path d="M-18 12 C-16 -5, -8 -20, -4 -26 C-2 -12, -4 5, -6 16 Z" fill="#FF8FA3"/>
+                    </g>
+
+                    <!-- Tulip Right (Soft Coral Pink) -->
+                    <g transform="translate(232, 138) rotate(22)">
+                        <path d="M-18 12 C-22 -12, -10 -28, 0 -32 C10 -28, 22 -12, 18 12 C12 22, -12 22, -18 12 Z" fill="#FF758F"/>
+                        <path d="M-10 14 C-12 -8, -4 -25, 0 -32 C4 -25, 12 -8, 10 14 Z" fill="#FF4D6D"/>
+                        <path d="M18 12 C16 -5, 8 -20, 4 -26 C2 -12, 4 5, 6 16 Z" fill="#FF8FA3"/>
+                    </g>
+
+                    <!-- Rose 1: Top Center (Deep Crimson Rose) -->
+                    <g transform="translate(160, 95)">
+                        <circle cx="0" cy="0" r="28" fill="#C9184A"/>
+                        <path d="M-22 -8 C-26 -24, 26 -24, 22 -8 C28 10, 14 26, 0 24 C-14 26, -28 10, -22 -8 Z" fill="#E01E5A"/>
+                        <path d="M-15 -5 C-18 -18, 18 -18, 15 -5 C18 8, 8 18, 0 16 C-8 18, -18 8, -15 -5 Z" fill="#FF4D6D"/>
+                        <path d="M-8 -2 C-10 -11, 10 -11, 8 -2 C10 5, 4 10, 0 9 C-4 10, -10 5, -8 -2 Z" fill="#FF758F"/>
+                        <circle cx="0" cy="0" r="4.5" fill="#A4133C"/>
+                    </g>
+
+                    <!-- Rose 2: Upper Left (Blush Pink Rose) -->
+                    <g transform="translate(115, 118)">
+                        <circle cx="0" cy="0" r="25" fill="#FF4D6D"/>
+                        <path d="M-20 -6 C-22 -20, 22 -20, 20 -6 C24 8, 12 22, 0 20 C-12 22, -24 8, -20 -6 Z" fill="#FF758F"/>
+                        <path d="M-12 -4 C-14 -14, 14 -14, 12 -4 C14 6, 6 14, 0 12 C-6 14, -14 6, -12 -4 Z" fill="#FF8FA3"/>
+                        <circle cx="0" cy="0" r="4" fill="#C9184A"/>
+                    </g>
+
+                    <!-- Rose 3: Upper Right (Blush Pink Rose) -->
+                    <g transform="translate(205, 118)">
+                        <circle cx="0" cy="0" r="25" fill="#FF4D6D"/>
+                        <path d="M-20 -6 C-22 -20, 22 -20, 20 -6 C24 8, 12 22, 0 20 C-12 22, -24 8, -20 -6 Z" fill="#FF758F"/>
+                        <path d="M-12 -4 C-14 -14, 14 -14, 12 -4 C14 6, 6 14, 0 12 C-6 14, -14 6, -12 -4 Z" fill="#FF8FA3"/>
+                        <circle cx="0" cy="0" r="4" fill="#C9184A"/>
+                    </g>
+
+                    <!-- Rose 4: Center Heart Rose (Velvet Red) -->
+                    <g transform="translate(160, 145)">
+                        <circle cx="0" cy="0" r="30" fill="#A4133C"/>
+                        <path d="M-24 -8 C-28 -25, 28 -25, 24 -8 C30 12, 15 28, 0 26 C-15 28, -30 12, -24 -8 Z" fill="#C9184A"/>
+                        <path d="M-16 -5 C-19 -18, 19 -18, 16 -5 C20 8, 9 19, 0 17 C-9 19, -20 8, -16 -5 Z" fill="#FF4D6D"/>
+                        <path d="M-8 -2 C-10 -11, 10 -11, 8 -2 C10 5, 4 10, 0 9 C-4 10, -10 5, -8 -2 Z" fill="#FF8FA3"/>
+                        <circle cx="0" cy="0" r="4.5" fill="#800F2F"/>
+                    </g>
+
+                    <!-- Rose 5: Lower Left (Creamy Pastel Rose) -->
+                    <g transform="translate(115, 168)">
+                        <circle cx="0" cy="0" r="24" fill="#FF8FA3"/>
+                        <path d="M-19 -6 C-21 -19, 21 -19, 19 -6 C23 8, 11 21, 0 19 C-11 21, -23 8, -19 -6 Z" fill="#FFB3C1"/>
+                        <path d="M-11 -3 C-13 -13, 13 -13, 11 -3 C13 6, 6 13, 0 11 C-6 13, -13 6, -11 -3 Z" fill="#FFCCD5"/>
+                        <circle cx="0" cy="0" r="3.5" fill="#FF4D6D"/>
+                    </g>
+
+                    <!-- Rose 6: Lower Right (Creamy Pastel Rose) -->
+                    <g transform="translate(205, 168)">
+                        <circle cx="0" cy="0" r="24" fill="#FF8FA3"/>
+                        <path d="M-19 -6 C-21 -19, 21 -19, 19 -6 C23 8, 11 21, 0 19 C-11 21, -23 8, -19 -6 Z" fill="#FFB3C1"/>
+                        <path d="M-11 -3 C-13 -13, 13 -13, 11 -3 C13 6, 6 13, 0 11 C-6 13, -13 6, -11 -3 Z" fill="#FFCCD5"/>
+                        <circle cx="0" cy="0" r="3.5" fill="#FF4D6D"/>
+                    </g>
+
+                    <!-- Bouquet Wrapping Paper (Pastel Blush Cone) -->
+                    <path d="M90 185 L160 315 L230 185 Q160 210 90 185 Z" fill="url(#paperWrap)" stroke="#F48FB1" stroke-width="2"/>
+                    <path d="M105 190 L160 315 L160 202 Z" fill="#FCE4EC" opacity="0.5"/>
+
+                    <!-- Satin Silk Ribbon & Bow -->
+                    <path d="M134 242 Q160 254 186 242 L182 256 Q160 266 138 256 Z" fill="#E11D48"/>
+                    <!-- Left Bow Loop -->
+                    <path d="M158 249 C135 232, 118 246, 132 260 C142 268, 154 256, 158 249 Z" fill="#F43F5E"/>
+                    <!-- Right Bow Loop -->
+                    <path d="M162 249 C185 232, 202 246, 188 260 C178 268, 166 256, 162 249 Z" fill="#F43F5E"/>
+                    <!-- Ribbon Tails -->
+                    <path d="M155 253 L136 292 L146 294 L160 256 Z" fill="#E11D48"/>
+                    <path d="M165 253 L184 292 L174 294 L160 256 Z" fill="#E11D48"/>
+                    <!-- Bow Knot -->
+                    <rect x="153" y="243" width="14" height="13" rx="5" fill="#BE123C"/>
+
+                    <!-- SVG Gradients -->
+                    <defs>
+                        <radialGradient id="bouquetGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#FFE4E6"/>
+                            <stop offset="100%" stop-color="#FFE4E6" stop-opacity="0"/>
+                        </radialGradient>
+                        <linearGradient id="paperWrap" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFF0F3"/>
+                            <stop offset="50%" stop-color="#FFD6E0"/>
+                            <stop offset="100%" stop-color="#FFB3C6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+
+            <!-- Heartfelt Anniversary Message -->
+            <div class="bg-rose-50/90 rounded-2xl p-5 sm:p-6 border border-rose-100 shadow-inner space-y-3">
+                <p class="text-rose-900 text-base sm:text-lg leading-relaxed font-medium">
+                    Ever since <span class="font-bold text-rose-600">June 2, 2024</span>, every single day with you has been my favorite adventure. Happy 2 years and 6 monthsary baby im so proud of you my little pookie bear even though your  struggling sa work mo, you never give up and thats what i like about you hehe you just keep telling me na kapoy na but but you still want to work just to make our dream came true so maka  meet nata hehe once again iloveyouu very much my baby mwuaah
+                </p>
+                <p class="font-script text-3xl sm:text-4xl text-rose-600 pt-1">
+                    I love you endlessly, my baby! ❤️
+                </p>
+            </div>
+
+            <!-- Next Surprise Button to Go to Page 3 (4 Favorite Photos) -->
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button 
+                    id="to-page-3-btn" 
+                    type="button"
+                    class="w-full sm:w-auto py-3 px-6 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 active:scale-[0.98] text-white font-bold text-base shadow-lg shadow-rose-300/60 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    <span>Next Surprise: Our Memories</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Subtle Replay / Back Button -->
+            <button 
+                id="reset-btn" 
+                type="button"
+                class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-rose-400 hover:text-rose-600 transition-colors cursor-pointer"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Back to calendar</span>
+            </button>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- PAGE 3: 4 FAVORITE PHOTOS POLAROID GALLERY                            -->
+        <!-- HOW TO ADD YOUR 4 FAVORITE PHOTOS OF HER:                             -->
+        <!-- Option A: Save 4 photos in the same folder as index.html named:       -->
+        <!--           "photo1.jpg", "photo2.jpg", "photo3.jpg", "photo4.jpg"      -->
+        <!-- Option B: Click directly on any Polaroid frame in the browser to      -->
+        <!--           select & preview photos from your computer/phone!           -->
+        <!-- ===================================================================== -->
+        <section id="page-3" class="hidden opacity-0 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-rose-100 p-6 sm:p-8 text-center transition-all duration-700 ease-in-out">
+            
+            <div class="inline-flex items-center gap-1.5 px-4 py-1 rounded-full bg-rose-100 text-rose-700 font-bold text-xs tracking-wide uppercase mb-2 shadow-sm">
+                <span>📸 My Favorite Views 📸</span>
+            </div>
+
+            <h2 class="font-script text-4xl sm:text-5xl text-rose-600 mb-1">
+                4 Reasons I Smile Every Day
+            </h2>
+            <p class="text-rose-700/75 text-xs sm:text-sm mb-6 font-medium">
+                Tap any Polaroid to add/change a photo, or click the text below each picture to edit your note ✨
+            </p>
+
+            <!-- 2x2 Polaroid Photo Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 mb-6">
+
+                <!-- POLAROID 1 -->
+                <div class="polaroid-card bg-white p-3 pb-4 rounded-xl shadow-lg border border-rose-100 -rotate-2 relative group">
+                    <input type="file" accept="image/*" class="photo-input hidden" data-target="photo-1">
+                    <div onclick="this.previousElementSibling.click()" class="relative aspect-square w-full overflow-hidden rounded-lg bg-rose-50 cursor-pointer flex items-center justify-center border border-rose-100">
+                        <!-- Replace src="photo1.jpg" with your actual file name if desired -->
+                        <img 
+                            id="photo-1" 
+                            src="photo1.jpg" 
+                            alt="Favorite Photo 1" 
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/ffe4e6/e11d48?text=Tap+to+Add+Photo+1+%E2%9D%A4%EF%B8%8F';"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        >
+                        <div class="absolute inset-0 bg-rose-900/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="bg-white/95 text-rose-600 text-xs font-bold px-3 py-1.5 rounded-full shadow">📷 Change Photo</span>
+                        </div>
+                    </div>
+                    <p contenteditable="true" class="font-script text-2xl sm:text-3xl text-rose-700 mt-3 px-1 outline-none focus:bg-rose-50 rounded-lg transition-colors" title="Click to edit caption">
+                    
+                        Your prettiest dress ❤️
+                    </p>
+                </div>
+
+                <!-- POLAROID 2 -->
+                <div class="polaroid-card bg-white p-3 pb-4 rounded-xl shadow-lg border border-rose-100 rotate-2 relative group">
+                    <input type="file" accept="image/*" class="photo-input hidden" data-target="photo-2">
+                    <div onclick="this.previousElementSibling.click()" class="relative aspect-square w-full overflow-hidden rounded-lg bg-rose-50 cursor-pointer flex items-center justify-center border border-rose-100">
+                        <!-- Replace src="photo2.jpg" with your actual file name if desired -->
+                        <img 
+                            id="photo-2" 
+                            src="photo2.jpg" 
+                            alt="Favorite Photo 2" 
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/fce7f3/db2777?text=Tap+to+Add+Photo+2+%F0%9F%92%95';"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        >
+                        <div class="absolute inset-0 bg-rose-900/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="bg-white/95 text-rose-600 text-xs font-bold px-3 py-1.5 rounded-full shadow">📷 Change Photo</span>
+                        </div>
+                    </div>
+                    <p contenteditable="true" class="font-script text-2xl sm:text-3xl text-rose-700 mt-3 px-1 outline-none focus:bg-rose-50 rounded-lg transition-colors" title="Click to edit caption">
+                        
+                        
+                        The Baddiest Girl in the world
+                        🌸
+                    </p>
+                </div>
+
+                <!-- POLAROID 3 -->
+                <div class="polaroid-card bg-white p-3 pb-4 rounded-xl shadow-lg border border-rose-100 rotate-1 relative group">
+                    <input type="file" accept="image/*" class="photo-input hidden" data-target="photo-3">
+                    <div onclick="this.previousElementSibling.click()" class="relative aspect-square w-full overflow-hidden rounded-lg bg-rose-50 cursor-pointer flex items-center justify-center border border-rose-100">
+                        <!-- Replace src="photo3.jpg" with your actual file name if desired -->
+                        <img 
+                            id="photo-3" 
+                            src="photo3.jpg" 
+                            alt="Favorite Photo 3" 
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/ffe4e6/e11d48?text=Tap+to+Add+Photo+3+%F0%9F%92%96';"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        >
+                        <div class="absolute inset-0 bg-rose-900/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="bg-white/95 text-rose-600 text-xs font-bold px-3 py-1.5 rounded-full shadow">📷 Change Photo</span>
+                        </div>
+                    </div>
+                    <p contenteditable="true" class="font-script text-2xl sm:text-3xl text-rose-700 mt-3 px-1 outline-none focus:bg-rose-50 rounded-lg transition-colors" title="Click to edit caption">
+                        So gorgeous always ✨
+                    </p>
+                </div>
+
+                <!-- POLAROID 4 -->
+                <div class="polaroid-card bg-white p-3 pb-4 rounded-xl shadow-lg border border-rose-100 -rotate-1 relative group">
+                    <input type="file" accept="image/*" class="photo-input hidden" data-target="photo-4">
+                    <div onclick="this.previousElementSibling.click()" class="relative aspect-square w-full overflow-hidden rounded-lg bg-rose-50 cursor-pointer flex items-center justify-center border border-rose-100">
+                        <!-- Replace src="photo4.jpg" with your actual file name if desired -->
+                        <img 
+                            id="photo-4" 
+                            src="photo4.jpg" 
+                            alt="Favorite Photo 4" 
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x400/fce7f3/db2777?text=Tap+to+Add+Photo+4+%F0%9F%92%97';"
+                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        >
+                        <div class="absolute inset-0 bg-rose-900/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="bg-white/95 text-rose-600 text-xs font-bold px-3 py-1.5 rounded-full shadow">📷 Change Photo</span>
+                        </div>
+                    </div>
+                    <p contenteditable="true" class="font-script text-2xl sm:text-3xl text-rose-700 mt-3 px-1 outline-none focus:bg-rose-50 rounded-lg transition-colors" title="Click to edit caption">
+                        Forever my baby 🥰
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Navigation Back to Bouquet Page -->
+            <button 
+                id="back-to-page-2-btn" 
+                type="button"
+                class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-rose-100 hover:bg-rose-200 text-sm font-bold text-rose-700 transition-colors cursor-pointer"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Back to Bouquet</span>
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Interactive Logic Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const TARGET_DATE = '2024-06-02'; // June 2, 2024
+            const mainWrapper = document.getElementById('main-wrapper');
+            const dateForm = document.getElementById('date-form');
+            const dateInput = document.getElementById('anniversary-date');
+            const feedbackMsg = document.getElementById('feedback-msg');
+            const page1 = document.getElementById('page-1');
+            const page2 = document.getElementById('page-2');
+            const page3 = document.getElementById('page-3');
+            const resetBtn = document.getElementById('reset-btn');
+            const toPage3Btn = document.getElementById('to-page-3-btn');
+            const backToPage2Btn = document.getElementById('back-to-page-2-btn');
+            const heartsContainer = document.getElementById('hearts-container');
+
+            // Music Player Elements
+            const bgMusic = document.getElementById('bg-music');
+            const musicUpload = document.getElementById('music-upload');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const changeSongBtn = document.getElementById('change-song-btn');
+            const iconPlay = document.getElementById('icon-play');
+            const iconPause = document.getElementById('icon-pause');
+            const vinylDisc = document.getElementById('vinyl-disc');
+            const songTitle = document.getElementById('song-title');
+            const songStatus = document.getElementById('song-status');
+
+            const heartEmojis = ['❤️', '💖', '💕', '💗', '💓', '🌸'];
+            let heartIntervalSpeed = 650; // Ambient speed on Page 1
+            let heartTimer;
+
+            /**
+             * Music Player Controls
+             */
+            function updateMusicUI(isPlaying) {
+                if (isPlaying) {
+                    iconPlay.classList.add('hidden');
+                    iconPause.classList.remove('hidden');
+                    vinylDisc.classList.remove('spin-paused');
+                    songStatus.textContent = 'Playing now... ♪';
+                } else {
+                    iconPause.classList.add('hidden');
+                    iconPlay.classList.remove('hidden');
+                    vinylDisc.classList.add('spin-paused');
+                    songStatus.textContent = 'Paused';
+                }
+            }
+
+            function togglePlayMusic() {
+                if (bgMusic.paused) {
+                    bgMusic.play().then(() => {
+                        updateMusicUI(true);
+                    }).catch(() => {
+                        // Prompt user to select an MP3 if music.mp3 isn't in folder yet
+                        songStatus.textContent = 'Pick an MP3 file →';
+                        musicUpload.click();
+                    });
+                } else {
+                    bgMusic.pause();
+                    updateMusicUI(false);
+                }
+            }
+
+            playPauseBtn.addEventListener('click', togglePlayMusic);
+            changeSongBtn.addEventListener('click', () => musicUpload.click());
+
+            musicUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const fileURL = URL.createObjectURL(file);
+                    bgMusic.src = fileURL;
+                    songTitle.textContent = file.name.replace(/\.[^/.]+$/, "");
+                    bgMusic.play().then(() => {
+                        updateMusicUI(true);
+                    }).catch(() => {
+                        updateMusicUI(false);
+                    });
+                }
+            });
+
+            /**
+             * Photo Upload Handlers for the 4 Polaroid Frames
+             */
+            document.querySelectorAll('.photo-input').forEach((input) => {
+                input.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const targetImg = document.getElementById(input.dataset.target);
+                        if (targetImg) {
+                            targetImg.src = URL.createObjectURL(file);
+                        }
+                    }
+                });
+            });
+
+            /**
+             * Spawns a single floating heart at a random horizontal position
+             */
+            function createFloatingHeart(isCelebration = false) {
+                const heart = document.createElement('span');
+                heart.classList.add('floating-heart');
+                heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+
+                const leftPos = Math.random() * 96;
+                const size = isCelebration 
+                    ? (Math.random() * 1.4 + 1.1).toFixed(2)
+                    : (Math.random() * 0.9 + 0.8).toFixed(2);
+                const duration = isCelebration 
+                    ? (Math.random() * 3.5 + 3.5).toFixed(2) 
+                    : (Math.random() * 4 + 5).toFixed(2);
+
+                heart.style.left = `${leftPos}vw`;
+                heart.style.fontSize = `${size}rem`;
+                heart.style.animationDuration = `${duration}s`;
+
+                heartsContainer.appendChild(heart);
+
+                setTimeout(() => {
+                    heart.remove();
+                }, parseFloat(duration) * 1000);
+            }
+
+            /**
+             * Starts continuous background heart generation
+             */
+            function startHearts(intervalMs) {
+                clearInterval(heartTimer);
+                heartTimer = setInterval(() => {
+                    createFloatingHeart(intervalMs < 400);
+                }, intervalMs);
+            }
+
+            /**
+             * Triggers an immediate burst of hearts when she guesses right
+             */
+            function burstHearts(count = 28) {
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => {
+                        createFloatingHeart(true);
+                    }, i * 90);
+                }
+            }
+
+            // Start gentle ambient hearts immediately on load
+            startHearts(heartIntervalSpeed);
+
+            // Handle form submission (Page 1 -> Page 2)
+            dateForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const chosenDate = dateInput.value;
+
+                if (!chosenDate) {
+                    showFeedback("Pick a date on the calendar first, sweetheart! 💕", "error");
+                    return;
+                }
+
+                if (chosenDate === TARGET_DATE) {
+                    feedbackMsg.classList.add('hidden');
+                    
+                    // Automatically try playing music on unlock interaction
+                    if (bgMusic.paused) {
+                        bgMusic.play().then(() => updateMusicUI(true)).catch(() => {});
+                    }
+
+                    // Fade out Page 1
+                    page1.classList.add('opacity-0', 'scale-95');
+                    
+                    setTimeout(() => {
+                        page1.classList.add('hidden');
+                        page2.classList.remove('hidden');
+                        
+                        burstHearts(30);
+                        startHearts(260);
+
+                        requestAnimationFrame(() => {
+                            page2.classList.remove('opacity-0');
+                        });
+                    }, 450);
+
+                } else {
+                    const hints = [
+                        "Not quite, my love! Think about June 2024... Try again ❤️",
+                        "Aww close, baby! Hint: It was a sunny day in June 2024 💕",
+                        "Oops, wrong day sweetheart! Give it another guess 😘"
+                    ];
+                    const randomHint = hints[Math.floor(Math.random() * hints.length)];
+                    showFeedback(randomHint, "error");
+                }
+            });
+
+            // Transition from Page 2 (Bouquet) -> Page 3 (4 Favorite Photos)
+            toPage3Btn.addEventListener('click', () => {
+                page2.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    page2.classList.add('hidden');
+                    // Widen main container slightly so the 2x2 Polaroid grid shines
+                    mainWrapper.classList.remove('max-w-md', 'sm:max-w-lg');
+                    mainWrapper.classList.add('max-w-lg', 'sm:max-w-2xl');
+
+                    page3.classList.remove('hidden');
+                    burstHearts(18);
+                    requestAnimationFrame(() => {
+                        page3.classList.remove('opacity-0');
+                    });
+                }, 450);
+            });
+
+            // Transition from Page 3 (Photos) -> Page 2 (Bouquet)
+            backToPage2Btn.addEventListener('click', () => {
+                page3.classList.add('opacity-0');
+                setTimeout(() => {
+                    page3.classList.add('hidden');
+                    mainWrapper.classList.remove('max-w-lg', 'sm:max-w-2xl');
+                    mainWrapper.classList.add('max-w-md', 'sm:max-w-lg');
+
+                    page2.classList.remove('hidden', 'opacity-0', 'scale-95');
+                }, 450);
+            });
+
+            /**
+             * Displays a styled message box with shake animation
+             */
+            function showFeedback(text, type) {
+                feedbackMsg.textContent = text;
+                feedbackMsg.classList.remove('hidden', 'shake', 'bg-rose-100', 'text-rose-700', 'border', 'border-rose-300');
+                
+                if (type === 'error') {
+                    feedbackMsg.classList.add('bg-rose-100', 'text-rose-700', 'border', 'border-rose-300');
+                }
+
+                void feedbackMsg.offsetWidth;
+                feedbackMsg.classList.add('shake');
+            }
+
+            // Allow returning back to Page 1 if desired
+            resetBtn.addEventListener('click', () => {
+                page2.classList.add('opacity-0');
+                setTimeout(() => {
+                    page2.classList.add('hidden');
+                    page1.classList.remove('hidden', 'opacity-0', 'scale-95');
+                    startHearts(650);
+                }, 450);
+            });
+        });
+    </script>
+</body>
+</html>
